@@ -1,3 +1,7 @@
 pyPreComp.sublime-project
 pyPreComp.sublime-workspace
 tester.py
+copy.py
+copy2.py
+__pycache__/
+compiled.py
