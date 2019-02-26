@@ -4,7 +4,8 @@ import re
 # GLOBALS
 file = ""
 RECURSON = False
-saveTo = "compiled.py"
+saveTo = "builded.py"
+baseDir = "./"
 
 
 def argParse():
@@ -53,38 +54,49 @@ def read(file):
 
 
 def isInclude(text):
-    return re.match(r"^# ?include\s*([A-z\./aáoóöőuúüű0-9]+\.py)\s*$", text)
+    return re.match(r"^\s*# ?include\s*([A-z\./aáoóöőuúüű0-9]+\.py)\s*$", text)
+
+
+def isSetBaseDir(text):
+    return re.match(r"^\s*# ?includeDir\s*([A-z\./aáoóöőuúüű0-9]+(/)?)\s*$", text)
+
+
+def getDirName(text):
+    return isSetBaseDir(text).group(1)
+
 
 def getFileName(text):
     return isInclude(text).group(1)
 
 
 def compile(file):
+    global baseDir
     text = read(file)
 
     ind = -1
 
     while ind < len(text) - 1:
-        ind +=1
+        ind += 1
 
         line = text[ind]
 
-        if not isInclude(line):
-            continue
+        if isInclude(line):
 
-        filename = getFileName(line)
+            filename = getFileName(line)
 
-        # note that read returns a list of lines
-        toCopy = read(filename)
+            # note that read returns a list of lines
+            toCopy = read(baseDir + filename)
 
-        text = text[0:ind] + toCopy + text[ind + 1:]
+            text = text[0:ind] + toCopy + text[ind + 1:]
 
-        ind += 0 if RECURSON else (len(toCopy) - 1) 
-        # print(text, ind)
+            ind += 0 if RECURSON else (len(toCopy) - 1)
 
-        # print(line) 
+        elif isSetBaseDir(line):
+            baseDir = getDirName(line) + "/"
+            text.pop(ind)
+            ind -= 1
+            # print("setdir found")
 
-        
     return text
 
 
@@ -92,10 +104,6 @@ def write(text, file):
     text = '\n'.join(text)
     with open(file, 'w+') as f:
         f.write(text)
-
-
-
-
 
 
 if __name__ == '__main__':
