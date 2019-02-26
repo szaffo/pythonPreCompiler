@@ -13,7 +13,7 @@ def argParse():
     global saveTo
 
     args = sys.argv[1:]
-    print(args)
+    # print(args)
 
     ind = 0
     while ind < len(args):
@@ -53,28 +53,52 @@ def read(file):
 
 
 def isInclude(text):
-    return re.match(r"^# ?include\s*[A-z\./aáoóöőuúüű]+\.py\s*$", text)
+    return re.match(r"^# ?include\s*([A-z\./aáoóöőuúüű0-9]+\.py)\s*$", text)
+
+def getFileName(text):
+    return isInclude(text).group(1)
 
 
 def compile(file):
     text = read(file)
 
-    for line in text:
-        # print(">{}<".format(line))
+    ind = -1
 
-        if isInclude(line):
-            print(line)
-        else:
-            # print(line)
+    while ind < len(text) - 1:
+        ind +=1
+
+        line = text[ind]
+
+        if not isInclude(line):
             continue
+
+        filename = getFileName(line)
+
+        # note that read returns a list of lines
+        toCopy = read(filename)
+
+        text = text[0:ind] + toCopy + text[ind + 1:]
+
+        ind += 0 if RECURSON else (len(toCopy) - 1) 
+        # print(text, ind)
+
+        # print(line) 
+
+        
+    return text
+
+
+def write(text, file):
+    text = '\n'.join(text)
+    with open(file, 'w+') as f:
+        f.write(text)
+
+
 
 
 
 
 if __name__ == '__main__':
     argParse()
-
-    print(file)
-    print(saveTo)
-
-    compile(file)
+    data = compile(file)
+    write(data, saveTo)
